@@ -3,8 +3,22 @@
 ## Requisitos
 
 - Node.js 18+
-- Un Sheet con headers que incluyan al menos `id` (o `ID`) y `Stock` (o `stock`)
-- Service Account de Google con acceso al Spreadsheet
+- Un Google Sheet con pestañas de **stock** y **Egresos**
+
+## Dos formas de escribir en Sheets
+
+### Opción A — Google Apps Script (recomendada si no querés Google Cloud)
+
+- Sin service account ni tarjeta en GCP.
+- Guía paso a paso: **[`../docs/APPS_SCRIPT_SHEETS.md`](../docs/APPS_SCRIPT_SHEETS.md)**
+- Código para pegar en el sheet: [`scripts/google-apps-script/Code.gs`](scripts/google-apps-script/Code.gs)
+- En `.env`: `GOOGLE_APPS_SCRIPT_URL` + `GOOGLE_APPS_SCRIPT_SECRET`
+
+### Opción B — Google Sheets API (service account)
+
+- `GOOGLE_SHEETS_SPREADSHEET_ID` + `GOOGLE_SHEETS_RANGE` + credenciales JSON o `GOOGLE_CLIENT_EMAIL` + `GOOGLE_PRIVATE_KEY`
+
+Tenés que configurar **A o B** (el arranque valida eso).
 
 ## Configuración
 
@@ -15,14 +29,7 @@ cd backend
 npm install
 ```
 
-2) Creá `backend/.env` desde `backend/.env.example` y completá:
-
-- `MP_ACCESS_TOKEN`
-- `MP_PUBLIC_KEY` (no se usa en backend, pero lo dejamos para coherencia)
-- `GOOGLE_SHEETS_SPREADSHEET_ID`
-- `GOOGLE_SHEETS_RANGE` (incluyendo fila de headers, ej `Productos!A1:Z1000`)
-- Google Auth:
-  - recomendado: `GOOGLE_SERVICE_ACCOUNT_JSON_PATH` (ruta absoluta al JSON)
+2) Creá `backend/.env` desde `backend/.env.example` y completá Mercado Pago + una de las opciones de Sheets.
 
 3) Levantá el backend:
 
@@ -38,10 +45,14 @@ npm run dev
 
 - `POST /webhook/mercadopago`
   - Mercado Pago envía notificaciones (configurá `MP_WEBHOOK_URL` y/o el webhook en tu panel)
-  - El backend consulta el pago y si está `approved` descuenta stock en Google Sheets.
+  - Si el pago está `approved`:
+    - **Apps Script:** un solo `POST` al Web App (stock + Egresos)
+    - **API:** descuenta stock y agrega filas en `Egresos`
+
+- `POST /payments/process-approved?payment_id=...`
+  - Fallback para reprocesar un pago aprobado.
 
 ## Notas
 
-- Para webhooks locales necesitás exponer el backend con ngrok o similar y setear `MP_WEBHOOK_URL`.
-- Este ejemplo usa un set en memoria para ignorar duplicados de webhooks. En producción conviene persistir en DB.
-
+- Para webhooks locales: ngrok + `MP_WEBHOOK_URL`.
+- Duplicados de webhook: set en memoria; en producción conviene DB.

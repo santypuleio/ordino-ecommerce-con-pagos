@@ -24,6 +24,17 @@ const CreatePreferenceSchema = z.object({
   }),
 });
 
+function isLikelyPublicHttpsUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:") return false;
+    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 router.post(
   "/create-preference",
   express.json({ limit: "100kb" }),
@@ -32,7 +43,16 @@ router.post(
     try {
       const { items } = req.validated.body;
 
-      const notificationUrl = (env.MP_WEBHOOK_URL || "").trim() || undefined;
+      const notificationUrl =
+        (env.MP_WEBHOOK_URL || "").trim() ||
+        `${env.BACKEND_BASE_URL.replace(/\/+$/, "")}/webhook/mercadopago`;
+      const frontendBase = env.FRONTEND_ORIGIN.replace(/\/+$/, "");
+
+      const successUrl = `${frontendBase}/checkout/success`;
+      const pendingUrl = `${frontendBase}/checkout/pending`;
+      const failureUrl = `${frontendBase}/checkout/failure`;
+
+      const canUseAutoReturn = isLikelyPublicHttpsUrl(successUrl);
 
       const preferenceBody = {
         items: items.map((i) => ({
@@ -52,11 +72,11 @@ router.post(
             unit_price: i.unit_price,
           })),
         },
-        auto_return: "approved",
+        ...(canUseAutoReturn ? { auto_return: "approved" } : {}),
         back_urls: {
-          success: `https://speedless-roderick-pretelephonic.ngrok-free.dev/checkout/success`,
-          pending: `https://speedless-roderick-pretelephonic.ngrok-free.dev/checkout/pending`,
-          failure: `https://speedless-roderick-pretelephonic.ngrok-free.dev/checkout/failure`,
+          success: successUrl,
+          pending: pendingUrl,
+          failure: failureUrl,
         },
         notification_url: notificationUrl,
       };
@@ -65,6 +85,8 @@ router.post(
         requestId: req.id,
         itemsCount: items.length,
         notificationUrl: notificationUrl ? true : false,
+        autoReturnEnabled: canUseAutoReturn,
+        successUrl,
       });
 
       const mpRes = await mpPreference.create({ body: preferenceBody });

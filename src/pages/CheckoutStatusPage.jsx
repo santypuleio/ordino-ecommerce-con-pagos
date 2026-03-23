@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { processApprovedPayment } from "../lib/api.js";
 
 const MAP = {
   success: {
@@ -22,6 +23,44 @@ const MAP = {
 export default function CheckoutStatusPage({ status }) {
   const loc = useLocation();
   const cfg = MAP[status] || MAP.pending;
+  const [sync, setSync] = useState({ loading: false, done: false, error: "" });
+
+  const paymentId = useMemo(() => {
+    const params = new URLSearchParams(loc.search);
+    return (
+      params.get("payment_id") ||
+      params.get("collection_id") ||
+      params.get("paymentId") ||
+      ""
+    ).trim();
+  }, [loc.search]);
+
+  useEffect(() => {
+    if (status !== "success") return;
+    if (!paymentId) return;
+    if (sync.done || sync.loading) return;
+
+    let alive = true;
+    (async () => {
+      try {
+        setSync({ loading: true, done: false, error: "" });
+        await processApprovedPayment(paymentId);
+        if (!alive) return;
+        setSync({ loading: false, done: true, error: "" });
+      } catch (e) {
+        if (!alive) return;
+        setSync({
+          loading: false,
+          done: false,
+          error: e?.message || "No se pudo confirmar stock/egreso",
+        });
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [status, paymentId, sync.done, sync.loading]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -31,6 +70,17 @@ export default function CheckoutStatusPage({ status }) {
         <div className="mt-4 text-xs opacity-80 break-all">
           Ref: {loc.search || "(sin referencia)"}
         </div>
+        {status === "success" ? (
+          <div className="mt-3 text-xs opacity-90">
+            {sync.loading
+              ? "Sincronizando stock y egresos..."
+              : sync.done
+                ? "Stock y egresos sincronizados."
+                : sync.error
+                  ? `No se pudo sincronizar automaticamente: ${sync.error}`
+                  : "Esperando referencia de pago para sincronizar."}
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-6 flex gap-3">

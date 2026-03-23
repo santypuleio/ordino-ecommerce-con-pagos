@@ -23,3 +23,22 @@ export async function createPreference({ items }) {
   return data;
 }
 
+export async function processApprovedPayment(paymentId) {
+  const base = getApiBaseUrl();
+  const url = new URL(`${base}/payments/process-approved`);
+  url.searchParams.set("payment_id", paymentId);
+
+  const res = await fetch(url.toString(), {
+    method: "POST",
+  });
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    const err = new Error(data?.error || "No se pudo procesar el pago aprobado");
+    err.details = data;
+    throw err;
+  }
+
+  return data;
+}
+
