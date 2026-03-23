@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { fetchProductsFromSheets } from "../lib/sheets.jsx";
+import { useCart } from "../cart/CartContext.jsx";
 
 const WHATSAPP_NUMBER = "+5491121826396"; // <-- tu número
 
@@ -19,9 +20,11 @@ function formatARS(n) {
 export default function ProductPage() {
   const { id } = useParams();
   const nav = useNavigate();
+  const cart = useCart();
 
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState({ loading: true, error: "" });
+  const [qty, setQty] = useState(1);
 
   useEffect(() => {
     let alive = true;
@@ -164,31 +167,76 @@ export default function ProductPage() {
               </p>
             )}
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <a
-                href={waLink}
-                target="_blank"
-                rel="noreferrer"
-                className={[
-                  "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold",
-                  inStock
-                    ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400"
-                    : "bg-zinc-800 text-zinc-300 cursor-not-allowed pointer-events-none",
-                ].join(" ")}
-              >
-                Comprar por WhatsApp
-              </a>
+            <div className="mt-6 grid gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="text-sm text-zinc-300 flex items-center gap-2">
+                  Cantidad
+                  <input
+                    type="number"
+                    min={1}
+                    value={qty}
+                    onChange={(e) => setQty(Math.max(1, Math.floor(Number(e.target.value || 1))))}
+                    className="w-28 rounded-xl border border-zinc-800 bg-zinc-950/30 px-3 py-2 text-sm text-zinc-100 outline-none"
+                  />
+                </label>
 
-              <Link
-                to="/"
-                className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/30 px-4 py-2 text-sm font-semibold text-zinc-200 hover:bg-zinc-900/50"
-              >
-                Seguir mirando
-              </Link>
+                <button
+                  disabled={!inStock}
+                  onClick={() =>
+                    cart.addItem(
+                      {
+                        id: product.id,
+                        title: product.nombre,
+                        unit_price: Number(product.precio || 0),
+                        picture_url: product.imagen || undefined,
+                      },
+                      qty
+                    )
+                  }
+                  className={[
+                    "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold",
+                    inStock
+                      ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400"
+                      : "bg-zinc-800 text-zinc-300 cursor-not-allowed",
+                  ].join(" ")}
+                >
+                  Agregar al carrito
+                </button>
+
+                <Link
+                  to="/carrito"
+                  className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/30 px-4 py-2 text-sm font-semibold text-zinc-200 hover:bg-zinc-900/50"
+                >
+                  Ir al carrito
+                </Link>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href={waLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={[
+                    "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold",
+                    inStock
+                      ? "border border-zinc-800 bg-zinc-950/30 text-zinc-200 hover:bg-zinc-900/50"
+                      : "bg-zinc-800 text-zinc-300 cursor-not-allowed pointer-events-none",
+                  ].join(" ")}
+                >
+                  Comprar por WhatsApp
+                </a>
+
+                <Link
+                  to="/"
+                  className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/30 px-4 py-2 text-sm font-semibold text-zinc-200 hover:bg-zinc-900/50"
+                >
+                  Seguir mirando
+                </Link>
+              </div>
             </div>
 
             <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950/30 p-4 text-xs text-zinc-400">
-              Esto es una demo de catálogo. No procesa pagos: solo deriva a WhatsApp.
+              Mercado Pago Checkout Pro: al pagar, el backend recibe el webhook y descuenta stock en Google Sheets.
             </div>
           </div>
         </div>

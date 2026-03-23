@@ -14,3 +14,27 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Mercado Pago + Stock en Google Sheets (Checkout Pro)
+
+Este repo incluye:
+
+- **Frontend (Vite + React)**: catálogo dinámico desde Google Sheets (CSV publicado) + carrito + botón “Pagar con Mercado Pago”.
+- **Backend (Node + Express)** en `backend/`: crea preferencias de Mercado Pago y recibe webhooks para **descontar stock** en Google Sheets usando Google Sheets API.
+
+### Frontend
+
+1) Crear `.env` desde `.env.example`:
+
+- `VITE_API_BASE_URL=http://localhost:4000`
+
+2) Correr:
+
+```bash
+npm install
+npm run dev
+```
+
+### Backend
+
+Ver `backend/README.md`.

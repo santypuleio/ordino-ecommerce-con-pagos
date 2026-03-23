@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { fetchProductsFromSheets } from "../lib/sheets.jsx";
 import { Link } from "react-router-dom";
 import logo from "../img/logo.png";
+import { useCart } from "../cart/CartContext.jsx";
 
 const BRAND = {
   name: "Ordino",
@@ -24,6 +25,7 @@ function formatARS(n) {
 }
 
 export default function ShopPage() {
+  const cart = useCart();
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState({ loading: true, error: "" });
 
@@ -116,16 +118,29 @@ export default function ShopPage() {
             />
           </div>
 
-          <a
-            href={`https://wa.me/${BRAND.whatsappNumber}?text=${encodeURIComponent(
-              "Hola! Quiero ver una demo del ecommerce conectado al stock."
-            )}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 whitespace-nowrap"
-          >
-            Pedir demo
-          </a>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/carrito"
+              className="inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/30 px-3 py-2 text-sm font-semibold text-zinc-200 hover:bg-zinc-900/50 whitespace-nowrap"
+              aria-label="Ir al carrito"
+            >
+              <span>Carrito</span>
+              <span className="rounded-full bg-zinc-950/60 px-2 py-0.5 text-xs text-zinc-300 border border-zinc-800">
+                {cart.totalQty}
+              </span>
+            </Link>
+
+            <a
+              href={`https://wa.me/${BRAND.whatsappNumber}?text=${encodeURIComponent(
+                "Hola! Quiero ver una demo del ecommerce conectado al stock."
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 whitespace-nowrap"
+            >
+              Pedir demo
+            </a>
+          </div>
         </div>
       </header>
 
@@ -248,6 +263,36 @@ export default function ShopPage() {
 
                     <span className="text-xs text-zinc-500">
                       Ver detalle →
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      disabled={p.stock <= 0}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        cart.addItem(
+                          {
+                            id: p.id,
+                            title: p.nombre,
+                            unit_price: Number(p.precio || 0),
+                            picture_url: p.imagen || undefined,
+                          },
+                          1
+                        );
+                      }}
+                      className={[
+                        "inline-flex flex-1 items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold",
+                        p.stock > 0
+                          ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400"
+                          : "bg-zinc-800 text-zinc-400 cursor-not-allowed",
+                      ].join(" ")}
+                    >
+                      Agregar
+                    </button>
+                    <span className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/30 px-3 py-2 text-sm font-semibold text-zinc-200">
+                      {cart.items.find((i) => i.id === p.id)?.quantity || 0}
                     </span>
                   </div>
                 </div>
