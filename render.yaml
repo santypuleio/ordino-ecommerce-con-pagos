@@ -1,0 +1,12 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# New → Blueprint → conectar repo. Luego cargá secrets en Environment (MP_*, GOOGLE_*, etc.).
+
+services:
+  - type: web
+    name: ordino-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health

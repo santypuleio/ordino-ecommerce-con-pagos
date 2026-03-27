@@ -1,8 +1,13 @@
 # Backend (Mercado Pago + Google Sheets)
 
+## Deploy gratis (producción)
+
+Guía paso a paso (Render, HTTPS, webhooks MP): **[`../docs/DEPLOY_BACKEND_GRATIS.md`](../docs/DEPLOY_BACKEND_GRATIS.md)**  
+En la raíz del repo: [`render.yaml`](../render.yaml) (Blueprint opcional).
+
 ## Requisitos
 
-- Node.js 18+
+- Node.js 20+ (recomendado)
 - Un Google Sheet con pestañas de **stock** y **Egresos**
 
 ## Dos formas de escribir en Sheets

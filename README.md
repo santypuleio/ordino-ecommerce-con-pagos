@@ -38,3 +38,8 @@ npm run dev
 ### Backend
 
 Ver `backend/README.md`.
+
+### Deploy (producción)
+
+- **API (Render):** [`docs/DEPLOY_BACKEND_GRATIS.md`](docs/DEPLOY_BACKEND_GRATIS.md)
+- **Front (Netlify):** [`docs/DEPLOY_NETLIFY.md`](docs/DEPLOY_NETLIFY.md) — variable `VITE_API_BASE_URL` al backend; luego `FRONTEND_ORIGIN` en Render = URL de Netlify.
