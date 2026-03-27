@@ -9,15 +9,34 @@ import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import checkoutRoutes from "./routes/checkout.js";
 import webhookRoutes from "./routes/webhook.js";
 
+/** Orígenes permitidos: FRONTEND_ORIGIN puede ser varios separados por coma (local + Netlify). */
+function parseAllowedOrigins() {
+  return String(env.FRONTEND_ORIGIN || "")
+    .split(",")
+    .map((s) => s.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
+}
+
 export function createApp() {
   const app = express();
 
   app.disable("x-powered-by");
 
+  const allowedOrigins = parseAllowedOrigins();
+
   app.use(requestId);
   app.use(
     cors({
-      origin: env.FRONTEND_ORIGIN,
+      origin(origin, callback) {
+        if (!origin) return callback(null, true);
+        const normalized = String(origin).replace(/\/+$/, "");
+        if (allowedOrigins.includes(normalized)) return callback(null, true);
+        logger.warn("CORS: origen no permitido", {
+          origin: normalized,
+          allowedOrigins,
+        });
+        return callback(null, false);
+      },
       credentials: false,
     })
   );

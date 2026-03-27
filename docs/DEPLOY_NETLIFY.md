@@ -31,7 +31,19 @@ En **Render → Environment** del servicio API:
 |-----|--------|
 | `FRONTEND_ORIGIN` | `https://TU-SITIO.netlify.app` |
 
-Copiá la URL exacta que te da Netlify (HTTPS, sin path). Guardá → redeploy del backend si hace falta.
+Copiá la URL exacta que te da Netlify (**HTTPS**, sin `/` al final, sin path).
+
+**Si también probás desde el front en local** (`localhost:5173`), usá **dos orígenes separados por coma**:
+
+```text
+http://localhost:5173,https://ordino-ecommerce-con-pagos.netlify.app
+```
+
+(Sin espacios extra, o con espacio tras la coma: el backend los recorta.)
+
+Guardá → **Manual Deploy** del backend si no redeploya solo.
+
+Si ves en consola *"CORS … no coincide"* → casi seguro `FRONTEND_ORIGIN` en Render no incluye la URL exacta de Netlify.
 
 ## 4. Mercado Pago
 
